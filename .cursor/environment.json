@@ -1,5 +1,5 @@
 {
   "name": "3D Geometric Game (Mono / WinForms)",
   "install": "sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mono-complete libgdiplus xvfb x11-utils imagemagick xdotool wmctrl fonts-dejavu && xbuild /p:Configuration=Debug In_Lec.sln",
-  "start": "pgrep -x Xvfb >/dev/null 2>&1 || (Xvfb :99 -screen 0 1280x1024x24 >/tmp/xvfb.log 2>&1 & sleep 1); true"
+  "start": "pgrep -x Xvfb >/dev/null 2>&1 || exec Xvfb :99 -screen 0 1280x1024x24"
 }
