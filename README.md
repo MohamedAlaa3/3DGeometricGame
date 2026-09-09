@@ -1,5 +1,8 @@
 # 3D Geometric Game
 
+
+**Live demo:** https://mohamedalaa3.github.io/3DGeometricGame/
+
 A small **3D game written from scratch in C#** on **.NET Framework 4.8 / WinForms**, using a hand-rolled software 3D renderer drawn with GDI+ (`System.Drawing`) — no OpenGL, DirectX, or external graphics libraries.
 
 You control a cube that climbs a grid of wireframe cubes while avoiding the red "holes". The whole 3D pipeline (camera, perspective projection, transforms) is implemented by hand and rasterized as 2D lines onto a double-buffered bitmap.

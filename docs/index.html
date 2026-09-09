@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D Geometric Game — Mohamed Alaa</title>
+  <style>
+:root{--ink:#1a1410;--paper:#f3ead8;--card:#fff8ec;--rule:#d4c6ae;--muted:#6d6254;--copper:#c47a32;--deep:#8d4f16}
+*{box-sizing:border-box}body{margin:0;font-family:Georgia,"Times New Roman",serif;background:var(--paper);color:var(--ink);line-height:1.55}
+.wrap{width:min(960px,calc(100% - 1.5rem));margin:0 auto;padding:1.4rem 0 3rem}
+a{color:var(--deep)}header{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:.8rem}
+.kicker{font:12px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--deep)}
+h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.1;margin:.3rem 0 1rem}
+.card{background:var(--card);border:1px solid var(--rule);padding:1rem 1.1rem;margin:1rem 0}
+.btn,.btn:visited{display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;padding:.55rem .9rem;border-radius:999px;margin:.2rem .3rem 0 0}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+canvas,textarea,pre,input[type=text]{width:100%;background:#fffaf1;border:1px solid var(--rule)}
+canvas{display:block;touch-action:none;max-width:100%}
+button{min-height:40px;padding:.45rem .75rem;margin:.2rem .25rem 0 0;cursor:pointer;border:1px solid var(--rule);background:#fff8ec;color:var(--ink);font:inherit}
+button.primary{background:var(--ink);color:var(--paper)}
+.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid var(--rule);text-align:left;padding:.35rem .4rem;font-size:.95rem}
+@media(max-width:640px){h1{font-size:1.7rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Mohamed Alaa</div>
+      <strong>3D Geometric Game</strong>
+    </div>
+    <nav>
+      <a href="https://github.com/MohamedAlaa3">GitHub</a>
+      · <a href="https://github.com/MohamedAlaa3/mohamed-alaa">Personal site</a>
+    </nav>
+  </header>
+  <p class="kicker">C# · software renderer</p>
+  <h1>A cube that climbs a wireframe grid</h1>
+  <p>The desktop game is a hand-rolled 3D pipeline in C# — camera, perspective, GDI+ lines, no OpenGL. The GIF is a real capture. The canvas below is a small browser sketch of the same climb.</p>
+  
+    <p>
+      <a class="btn" href="https://github.com/MohamedAlaa3/3DGeometricGame">Source</a>
+    </p>
+    <div class="card">
+      <img src="demo.gif" alt="Gameplay demo of the C# game" style="width:100%;border:1px solid #d4c6ae">
+      <p class="muted">Recorded under Mono on Linux: the blue cube climbs, then the camera pans.</p>
+    </div>
+    <div class="card">
+      <p><strong>W</strong> climb · <strong>A / D</strong> shift · red cells are holes</p>
+      <canvas id="c" width="720" height="420"></canvas>
+      <p id="msg" class="muted"></p>
+    </div>
+
+</div>
+<script>
+
+const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
+const holes=new Set(['2,3','4,1','5,4','1,2']);
+let px=3, py=0, pz=0, camY=2.2, t=0, dead=false;
+function key(x,z){ return x+','+z; }
+function project(x,y,z){
+  const cx=x-3.5, cy=y-camY, cz=z+6;
+  const f=280/(cz);
+  return [canvas.width/2+cx*f, canvas.height*0.72-cy*f];
+}
+function cube(x,y,z,s,color,fill){
+  const p=[
+    [x,y,z],[x+s,y,z],[x+s,y,z+s],[x,y,z+s],
+    [x,y+s,z],[x+s,y+s,z],[x+s,y+s,z+s],[x,y+s,z+s]
+  ].map(q=>project(q[0],q[1],q[2]));
+  const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  ctx.strokeStyle=color; ctx.beginPath();
+  for(const [a,b] of edges){ ctx.moveTo(p[a][0],p[a][1]); ctx.lineTo(p[b][0],p[b][1]); }
+  ctx.stroke();
+}
+function draw(){
+  ctx.fillStyle='#fff8ec'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let z=7; z>=0; z--){
+    for(let x=0;x<8;x++){
+      const hole=holes.has(key(x,z));
+      cube(x,0,z,0.92, hole?'#8d1f1f':'#1a1410');
+    }
+  }
+  if(!dead) cube(px+0.2, 0.95+py, pz+0.2, 0.55, '#2a5f9e');
+  document.getElementById('msg').textContent = dead ? 'Fell in a hole. Press R.' : 'Height '+py;
+}
+addEventListener('keydown', e=>{
+  const k=e.key.toLowerCase();
+  if(k==='r'){ px=3; py=0; pz=0; dead=false; draw(); return; }
+  if(dead) return;
+  if(k==='a') px=Math.max(0,px-1);
+  if(k==='d') px=Math.min(7,px+1);
+  if(k==='w'){ pz=Math.min(7,pz+1); py+=1; }
+  if(holes.has(key(px,pz))) dead=true;
+  e.preventDefault();
+  draw();
+});
+setInterval(()=>{ t++; camY=2.2+Math.sin(t/40)*0.15; draw(); }, 40);
+draw();
+
+</script>
+</body>
+</html>
